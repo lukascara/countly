@@ -1,0 +1,7 @@
+[package]
+name = "countly"
+version = "0.1.0"
+authors = ["lukas <mr.alpha.one@gmail.com>"]
+
+[dependencies]
+pancurses = "0.16"
