@@ -3,22 +3,21 @@ use pancurses::{initscr, endwin, Input, noecho, Window};
 use std::collections::HashMap;
 
 fn main() {
-    let mut hCounters: HashMap<char, Counter> = HashMap::new();
-    hCounters.insert('l', Counter::new('l', "Lymph Node Count", 0));
-    hCounters.insert('m', Counter::new('m', "Mitotic Figure Count", 0));
+    let mut h_counters: HashMap<char, Counter> = HashMap::new();
+    h_counters.insert('l', Counter::new('l', "Lymph Node Count", 0));
+    h_counters.insert('m', Counter::new('m', "Mitotic Figure Count", 0));
 
     let window = initscr();
-    let mut ln_count = 0;
-    let mut mit_count = 0;
     window.refresh();
-    refresh_screen(&window, &ln_count,&mit_count);
+    refresh_screen(&window, &h_counters);
     window.keypad(true);
     noecho();
     loop {
         match window.getch() {
             Some(Input::Character(x)) => {
-                match hCounters.get(&x){
-                    Some(c) => {
+                let tmp = x.clone();
+                match h_counters.get_mut(&tmp.to_ascii_lowercase()){
+                    Some(mut c) => {
                         if x.is_lowercase() {
                             c.increment();
                         } else { c.decrement(); }
@@ -26,26 +25,26 @@ fn main() {
                     _ => ()
                 }
             }
-            Some(Input::Character(c)) => (),
             Some(Input::KeyClose) => break,
-            Some(input) => (),
+            Some(_) => (),
             None => ()
 
         }
-        refresh_screen(&window, &ln_count, &mit_count);
+        refresh_screen(&window, &h_counters);
     }
     endwin();
 }
 
 
-fn refresh_screen(window: &Window, ln_count: &u32, mit_count: &u32) {
+fn refresh_screen(window: &Window, h_counters: &HashMap<char, Counter>) {
     window.clear();
-    print_count(&window, "Lymph Node Count[L,l]: ", ln_count);
-    print_count(&window, "Mitotic count [M,m]: ", mit_count);
+    for (_, c) in h_counters {
+        print_count(window, &c.label, &c.count)
+    }
 }
 
 fn print_count(window: &Window, label: &str, count: &u32) {
-    window.printw(&format!("\n{}", label));
+    window.printw(&format!("\n{}: ", label));
     window.attron(pancurses::A_BOLD);
     window.printw(&format!("{}\n", *count));
     window.attroff(pancurses::A_BOLD);
@@ -68,13 +67,13 @@ impl Counter {
         }
     }
 
-    fn increment(self) {
-        self.count += 1;
+    fn increment(&mut self) {
+        self.count += 1
     }
 
-    fn decrement(self) {
+    fn decrement(&mut self) {
         if self.count > 0 {
-            self.count -= 1;
+            self.count -= 1
         }
     }
 }
