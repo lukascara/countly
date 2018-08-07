@@ -1,8 +1,12 @@
 extern crate pancurses;
-use std::boxed::Box;
 use pancurses::{initscr, endwin, Input, noecho, Window};
+use std::collections::HashMap;
 
 fn main() {
+    let mut hCounters: HashMap<char, Counter> = HashMap::new();
+    hCounters.insert('l', Counter::new('l', "Lymph Node Count", 0));
+    hCounters.insert('m', Counter::new('m', "Mitotic Figure Count", 0));
+
     let window = initscr();
     let mut ln_count = 0;
     let mut mit_count = 0;
@@ -13,18 +17,11 @@ fn main() {
     loop {
         match window.getch() {
             Some(Input::Character(x)) => {
-                match x {
-                    'l' => {
-                        ln_count += 1;
-                    }
-                    'L' => {
-                        ln_count -= 1;
-                    }
-                    'm' => {
-                        mit_count += 1;
-                    }
-                    'M' => {
-                        mit_count -= 1;
+                match hCounters.get(&x){
+                    Some(c) => {
+                        if x.is_lowercase() {
+                            c.increment();
+                        } else { c.decrement(); }
                     }
                     _ => ()
                 }
@@ -52,4 +49,32 @@ fn print_count(window: &Window, label: &str, count: &u32) {
     window.attron(pancurses::A_BOLD);
     window.printw(&format!("{}\n", *count));
     window.attroff(pancurses::A_BOLD);
+}
+
+pub struct Counter{
+    pub label: String,
+    count: u32,
+    pub kb_lower: char
+}
+
+
+
+impl Counter {
+    pub fn new(kb_lower: char, label: &str, count: u32) -> Counter{
+        Counter {
+            kb_lower,
+            label: String::from(label),
+            count
+        }
+    }
+
+    fn increment(self) {
+        self.count += 1;
+    }
+
+    fn decrement(self) {
+        if self.count > 0 {
+            self.count -= 1;
+        }
+    }
 }
