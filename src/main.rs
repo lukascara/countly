@@ -6,6 +6,9 @@ fn main() {
     let mut h_counters: HashMap<char, Counter> = HashMap::new();
     h_counters.insert('l', Counter::new('l', "Lymph Node Count", 0));
     h_counters.insert('m', Counter::new('m', "Mitotic Figure Count", 0));
+    h_counters.insert('b', Counter::new('b', "Boys", 0));
+    h_counters.insert('g', Counter::new('g', "Girls", 0));
+
 
     let window = initscr();
     window.refresh();
@@ -38,15 +41,23 @@ fn main() {
 
 fn refresh_screen(window: &Window, h_counters: &HashMap<char, Counter>) {
     window.clear();
+    // print the header
+    window.attron(pancurses::A_BOLD); window.attron(pancurses::A_UNDERLINE);
+    window.printw("Countly:");
+    window.attroff(pancurses::A_BOLD);
+    window.printw(" counting made simple.\n");
+    window.attroff(pancurses::A_UNDERLINE);
+    window.printw("Lowercase keyboard increments. Uppercase keyboard decrements\n");
+    // print each of the counters
     for (_, c) in h_counters {
-        print_count(window, &c.label, &c.count)
+        print_count(window, &c)
     }
 }
 
-fn print_count(window: &Window, label: &str, count: &u32) {
-    window.printw(&format!("\n{}: ", label));
+fn print_count(window: &Window, c: &Counter) {
+    window.printw(&format!("\n{} [{}]: ", c.label,c.kb_lower));
     window.attron(pancurses::A_BOLD);
-    window.printw(&format!("{}\n", *count));
+    window.printw(&format!("{}\n", c.count));
     window.attroff(pancurses::A_BOLD);
 }
 
