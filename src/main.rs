@@ -1,13 +1,34 @@
 extern crate pancurses;
+extern crate clap;
 use pancurses::{initscr, endwin, Input, noecho, Window};
 use std::collections::HashMap;
+use clap::{Arg, App, SubCommand};
+use std::path::Path;
+
+
+
 
 fn main() {
     let mut h_counters: HashMap<char, Counter> = HashMap::new();
-    h_counters.insert('l', Counter::new('l', "Lymph Node Count", 0));
-    h_counters.insert('m', Counter::new('m', "Mitotic Figure Count", 0));
-    h_counters.insert('b', Counter::new('b', "Boys", 0));
-    h_counters.insert('g', Counter::new('g', "Girls", 0));
+    let matches = App::new("Countly")
+        .version("0.1")
+        .author("Lukas C.")
+        .about("A simple counter using keboard input")
+        .arg(Arg::with_name("INPUT")
+            .help("Sets the input file to use")
+            .required(false)
+            .index(1))
+        .get_matches();
+    let config = matches.value_of("INPUT").unwrap_or("default");
+    match config{
+        "default" => {
+
+        }
+        conf => {
+
+        }
+    }
+
 
 
     let window = initscr();
@@ -38,6 +59,12 @@ fn main() {
     endwin();
 }
 
+fn populate_default_counters(mut h_counters: HashMap<char, Counter>) {
+    h_counters.insert('l', Counter::new('l', "Lymph Node Count", 0));
+    h_counters.insert('m', Counter::new('m', "Mitotic Figure Count", 0));
+    h_counters.insert('b', Counter::new('b', "Boys", 0));
+    h_counters.insert('g', Counter::new('g', "Girls", 0));
+}
 
 fn refresh_screen(window: &Window, h_counters: &HashMap<char, Counter>) {
     window.clear();
