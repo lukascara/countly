@@ -19,7 +19,15 @@ fn main() {
         terminal::refresh();
         match terminal::wait_event() {
             Some(x) => {
-                let tmp = terminal::state::char();
+                let key_press = terminal::state::char();
+                match h_counters.get_mut(&key_press.to_ascii_lowercase()){
+                    Some(mut c) => {
+                        if key_press.is_lowercase() {
+                            c.increment();
+                        } else { c.decrement(); }
+                    }
+                    _ => ()
+                }
             }
             None => {
             }
@@ -56,12 +64,13 @@ fn refresh_screen(h_counters: &HashMap<char, Counter>) {
     terminal::clear(None);
     terminal::print_xy(0, 0, "Countly: counting made simple");
     terminal::print_xy(1,1,&format!("Screen size: ({}, {})",x,y));
-    println!("Refresh screen called");
+    terminal::set_foreground(Color::from_rgb(255, 126, 100));
     for ( i,(_, c)) in h_counters.iter().enumerate() {
-        terminal::set_foreground(Color::from_rgb(255, 126, 100));
+
         terminal::print_xy(1,(i + 1) as i32,
-                           &format!("\n{} [{}]: {}\n", c.label,c.kb_lower, c.count.to_string()));
+                           &format!("\n{} [[{}]]: {}\n", c.label,c.kb_lower, c.count.to_string()));
     }
+    terminal::set_foreground(Color::from_rgb(0xFF, 0xFF, 0xFF));
 }
 
 fn print_count(c: &Counter) {
