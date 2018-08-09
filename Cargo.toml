@@ -6,3 +6,5 @@ authors = ["lukas <mr.alpha.one@gmail.com>"]
 [dependencies]
 pancurses = "0.16"
 clap = "2.32.0"
+bear-lib-terminal = { git = "https://github.com/nabijaczleweli/BearLibTerminal.rs.git"}
+

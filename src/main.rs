@@ -1,63 +1,64 @@
-extern crate pancurses;
-extern crate clap;
-use pancurses::{initscr, endwin, Input, noecho, Window};
+extern crate bear_lib_terminal;
+
+use bear_lib_terminal::Color;
+use bear_lib_terminal::geometry::Point;
+use bear_lib_terminal::terminal::{self, config, Event, KeyCode};
 use std::collections::HashMap;
-use clap::{Arg, App, SubCommand};
-use std::path::Path;
-
-
+use std::fmt::Debug;
 
 
 fn main() {
     let mut h_counters: HashMap<char, Counter> = HashMap::new();
-    let matches = App::new("Countly")
-        .version("0.1")
-        .author("Lukas C.")
-        .about("A simple counter using keboard input")
-        .arg(Arg::with_name("INPUT")
-            .help("Sets the input file to use")
-            .required(false)
-            .index(1))
-        .get_matches();
-    let config = matches.value_of("INPUT").unwrap_or("default");
-    match config{
-        "default" => {
+    let mut h_counters: HashMap<char, Counter> = HashMap::new();
+    terminal::open("Simple example", 80, 30);
+    terminal::set(config::Window::empty().resizeable(true));
+    println!("TESTME");
 
-        }
-        conf => {
-
-        }
-    }
-
-
-
-    let window = initscr();
-    window.refresh();
-    refresh_screen(&window, &h_counters);
-    window.keypad(true);
-    noecho();
-    loop {
-        match window.getch() {
-            Some(Input::Character(x)) => {
-                let tmp = x.clone();
-                match h_counters.get_mut(&tmp.to_ascii_lowercase()){
-                    Some(mut c) => {
-                        if x.is_lowercase() {
-                            c.increment();
-                        } else { c.decrement(); }
-                    }
-                    _ => ()
-                }
+    terminal::print_xy(0, 0, "Countly: counting made simple");
+    terminal::refresh();
+    for event in terminal::events() {
+        match event {
+            Event::Resize{width, height} => {
+                terminal::print_xy(0, 0, &*&format!("Width: {}\nHeight: {}", width, height));
+                terminal::refresh();
+            },
+            Event::KeyPressed{key: KeyCode::Escape, ctrl: _, shift: _} => {
+                println!("BREAK");
+                break
+            },
+            Event::KeyPressed{key: KeyCode, ctrl: _, shift: _} => {
+                println!("Print A");
+                refresh_screen(&h_counters);
+                break
             }
-            Some(Input::KeyClose) => break,
-            Some(_) => (),
-            None => ()
 
+            _                                                                         => (),
         }
-        refresh_screen(&window, &h_counters);
     }
-    endwin();
+
+    loop {
+        match terminal::wait_event() {
+            Some(x) => {
+                let tmp = terminal::state::char();
+                println!("{}", tmp.to_string());
+            }
+            None => {
+            }
+        }
+    }
+
+    terminal::with_colors(Color::from_rgb(0xFA, 0xAF, 0x29), Color::from_rgb(0x05, 0x50, 0xD6), || terminal::print_xy(0, 1, "Colerd"));
+
+
+    terminal::set_foreground(Color::from_rgb(0xFF, 0xFF, 0xFF));
+    if let Some(string) = terminal::read_str(Point::new(0, 5), 30) {
+        terminal::print_xy(0, 5, &*&string);
+    }
+    terminal::refresh();
+
+    terminal::close();
 }
+
 
 fn populate_default_counters(mut h_counters: HashMap<char, Counter>) {
     h_counters.insert('l', Counter::new('l', "Lymph Node Count", 0));
@@ -66,26 +67,21 @@ fn populate_default_counters(mut h_counters: HashMap<char, Counter>) {
     h_counters.insert('g', Counter::new('g', "Girls", 0));
 }
 
-fn refresh_screen(window: &Window, h_counters: &HashMap<char, Counter>) {
-    window.clear();
-    // print the header
-    window.attron(pancurses::A_BOLD); window.attron(pancurses::A_UNDERLINE);
-    window.printw("Countly:");
-    window.attroff(pancurses::A_BOLD);
-    window.printw(" counting made simple.\n");
-    window.attroff(pancurses::A_UNDERLINE);
-    window.printw("Lowercase keyboard increments. Uppercase keyboard decrements\n");
+fn refresh_screen(h_counters: &HashMap<char, Counter>) {
+    terminal::print_xy(0,2,"Counter #1");
+    terminal::print_xy(0,3,"Counter #2");
+    terminal::print_xy(0,4,"Counter #3");
     // print each of the counters
     for (_, c) in h_counters {
-        print_count(window, &c)
+        print_count( &c)
     }
 }
 
-fn print_count(window: &Window, c: &Counter) {
-    window.printw(&format!("\n{} [{}]: ", c.label,c.kb_lower));
-    window.attron(pancurses::A_BOLD);
-    window.printw(&format!("{}\n", c.count));
-    window.attroff(pancurses::A_BOLD);
+fn print_count(c: &Counter) {
+    //window.printw(&format!("\n{} [{}]: ", c.label,c.kb_lower));
+    // window.attron(pancurses::A_BOLD);
+    //window.printw(&format!("{}\n", c.count));
+    //window.attroff(pancurses::A_BOLD);
 }
 
 pub struct Counter{
