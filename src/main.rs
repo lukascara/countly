@@ -1,46 +1,25 @@
 extern crate bear_lib_terminal;
 
 use bear_lib_terminal::Color;
-use bear_lib_terminal::geometry::Point;
+use bear_lib_terminal::geometry::{Point, Size};
+use bear_lib_terminal::geometry;
 use bear_lib_terminal::terminal::{self, config, Event, KeyCode};
 use std::collections::HashMap;
 use std::fmt::Debug;
 
 
 fn main() {
-    let mut h_counters: HashMap<char, Counter> = HashMap::new();
-    let mut h_counters: HashMap<char, Counter> = HashMap::new();
+    let mut h_counters = get_default_counters();
+    get_default_counters();
     terminal::open("Simple example", 80, 30);
     terminal::set(config::Window::empty().resizeable(true));
-    println!("TESTME");
-
-    terminal::print_xy(0, 0, "Countly: counting made simple");
-    terminal::refresh();
-    for event in terminal::events() {
-        match event {
-            Event::Resize{width, height} => {
-                terminal::print_xy(0, 0, &*&format!("Width: {}\nHeight: {}", width, height));
-                terminal::refresh();
-            },
-            Event::KeyPressed{key: KeyCode::Escape, ctrl: _, shift: _} => {
-                println!("BREAK");
-                break
-            },
-            Event::KeyPressed{key: KeyCode, ctrl: _, shift: _} => {
-                println!("Print A");
-                refresh_screen(&h_counters);
-                break
-            }
-
-            _                                                                         => (),
-        }
-    }
 
     loop {
+        refresh_screen(&h_counters);
+        terminal::refresh();
         match terminal::wait_event() {
             Some(x) => {
                 let tmp = terminal::state::char();
-                println!("{}", tmp.to_string());
             }
             None => {
             }
@@ -60,25 +39,33 @@ fn main() {
 }
 
 
-fn populate_default_counters(mut h_counters: HashMap<char, Counter>) {
+
+
+fn get_default_counters() ->  HashMap<char, Counter> {
+    let mut h_counters: HashMap<char, Counter> = HashMap::new();
     h_counters.insert('l', Counter::new('l', "Lymph Node Count", 0));
     h_counters.insert('m', Counter::new('m', "Mitotic Figure Count", 0));
     h_counters.insert('b', Counter::new('b', "Boys", 0));
     h_counters.insert('g', Counter::new('g', "Girls", 0));
+    h_counters
 }
 
 fn refresh_screen(h_counters: &HashMap<char, Counter>) {
-    terminal::print_xy(0,2,"Counter #1");
-    terminal::print_xy(0,3,"Counter #2");
-    terminal::print_xy(0,4,"Counter #3");
     // print each of the counters
-    for (_, c) in h_counters {
-        print_count( &c)
+    let Size{ width: x, height: y } = terminal::state::size();
+    terminal::clear(None);
+    terminal::print_xy(0, 0, "Countly: counting made simple");
+    terminal::print_xy(1,1,&format!("Screen size: ({}, {})",x,y));
+    println!("Refresh screen called");
+    for ( i,(_, c)) in h_counters.iter().enumerate() {
+        terminal::set_foreground(Color::from_rgb(255, 126, 100));
+        terminal::print_xy(1,(i + 1) as i32,
+                           &format!("\n{} [{}]: {}\n", c.label,c.kb_lower, c.count.to_string()));
     }
 }
 
 fn print_count(c: &Counter) {
-    //window.printw(&format!("\n{} [{}]: ", c.label,c.kb_lower));
+
     // window.attron(pancurses::A_BOLD);
     //window.printw(&format!("{}\n", c.count));
     //window.attroff(pancurses::A_BOLD);
